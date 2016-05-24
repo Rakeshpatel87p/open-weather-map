@@ -1,40 +1,57 @@
-angular.module('OWMApp', ['ngRoute'])
-	.value('owmCities', ['New York', 'Dallas', 'Chicago'])
-	.config(function($routeProvider){
-		$routeProvider
-		.when('/', {
-			templateUrl: './home.html',
-			controller: 'HomeCtrl'
-		}).when('/cities/:city', {
-			templateUrl:'city.html',
-			controller:'CityCtrl',
-			resolve: {
-				city: function(owmCities, $route, $location) {
-					var city = $route.current.params.city;
-					if(owmCities.indexOf(city) == -1){
-						$location.path('/error');
-						return;
-					}
-					return city;
-				}
-			}
-		});
+angular.module('OWMApp', ['ngRoute', 'ngAnimate'])
+    .config(['$routeProvider', function($routeProvider) {
+        $routeProvider
+            .when('/', {
+                templateUrl: 'home.html',
+                controller: 'HomeCtrl'
+            })
+            .when('/cities/:city', {
+                templateUrl: 'city.html',
+                controller: 'CityCtrl',
+                resolve: {
+                    city: function(owmCities, $route, $location) {
+                        var city = $route.current.params.city;
+                        if (owmCities.indexOf(city) == -1) {
+                            $location.path('/error');
+                            return;
+                        }
+                        return city;
+                    }
+                }
+            })
+            .when('/error', {
+                template: '<p>Error - Page Not Found</p>'
+            })
+            .otherwise('/error');
+    }])
 
-			.when('/error', {
-				template: '<p>Error - Page Not Found</p>'
-			})
+.run(function($rootScope, $location, $timeout) {
+    $rootScope.$on('$routeChangeError', function() {
+        $location.path('/error');
+    });
 
-			// .run(function($rootScope, $location){
-			// 	$rootScope.$on('$routeChangeError', function(){
-			// 		$location.path('/error');
-			// 	});
-			// })
-	// })
+    $rootScope.$on('$routeChangeStart', function() {
+        $rootScope.isLoading = true;
+    });
 
-	.controller('HomeCtrl', function($scope){
+    $rootScope.$on('$routeChangeSuccess', function() {
+        $timeout(function(){
+        	$rootScope.isLoading = false;
+        }, 1000);
+    });
+})
 
-	})
-	.controller('CityCtrl', function($scope, city){
-		$scope.city = city;
-		
-	});
+
+.value('owmCities', ['New York', 'Dallas', 'Chicago'])
+    .controller('HomeCtrl', function($scope) {
+        //empty for now
+    })
+
+.controller('HomeCtrl', function($scope) {
+
+})
+
+.controller('CityCtrl', function($scope, city) {
+    $scope.city = city;
+
+});
